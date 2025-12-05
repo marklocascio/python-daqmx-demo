@@ -2,7 +2,7 @@ import logging
 
 from nidaqmx.errors import DaqError
 from nidaqmx.system.storage import PersistedTask
-from nidaqmx.constants import AcquisitionType, WAIT_INFINITELY
+from nidaqmx.constants import AcquisitionType
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +28,12 @@ def main(task_name, sample_rate=1000, acq_rate=2, buffer_multiplier=10):
     task.start()
     all_data = []
     while True:
-        new_data = task.read(samples_per_acq, timeout=WAIT_INFINITELY)
+        try:
+            new_data = task.read(samples_per_acq)
+        except DaqError as ex:
+            logger.error(str(ex))
+            break
+
         all_data = all_data + new_data
 
         logger.debug(f"Acquired {len(new_data)} samples")
